@@ -25,6 +25,7 @@ export function initializeAPIInstance(): API.New {
         // Also set it on window for backwards compatibility
         if (typeof window !== 'undefined') {
             window.APIInstance = apiInstance;
+            apiInstance.startSocketConnection();
         }
     }
     return apiInstance;

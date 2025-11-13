@@ -278,6 +278,18 @@ class API {
 		}
 	}
 
+	/**
+	 * Get the current status of the WebSocket connection.
+	 * @returns A promise that resolves to the WebSocket ready state as a string, or null if no socket is established.
+	 */
+	async getSocketStatus(): Promise<string | null> {
+		if (!this.socket) {
+			console.error('No socket connection established.');
+			return null;
+		}
+		return this.socket.readyState.toString();
+	}
+
 	/***************** STATICS */
 
 	static newEndpoint(): string {

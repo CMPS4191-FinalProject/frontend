@@ -6,4 +6,5 @@ export * from './favorites';
 export * from './healthcheck';
 export * from './nodedata';
 export * from './nodes';
+export * from './socket';
 export * from './users';
