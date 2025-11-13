@@ -4,7 +4,10 @@ import { UserCreateRequest } from './types/auth';
 import { NodeFavoriteCreateRequest } from './types/favorites';
 import HealthCheckResponse from './types/healthcheck';
 import { NodeCreateRequest, NodeResponse, NodeUpdateRequest } from './types/nodes';
-export type { HealthCheckResponse };
+export type {
+	AuthResponse, HealthCheckResponse, LoginRequest, NodeCreateRequest, NodeFavoriteCreateRequest, NodeFavoritesResponse, NodeResponse, NodesResponse, NodeUpdateRequest,
+	UserCreateRequest
+};
 
 class API {
 	base: string;
@@ -16,14 +19,18 @@ class API {
 		this.version = version;
 	}
 
-	private async fetchJSON<T>(url: string, body?: any, method: "GET" | "POST" | "PUT" | "DELETE" = "GET"): Promise<T> {
+	private async fetchJSON<T>(
+		url: string,
+		body?: any,
+		method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET'
+	): Promise<T> {
 		const response = await fetch(this.base + this.version + url, {
 			method: method,
 			headers: {
 				'Content-Type': 'application/json',
-				...(this.auth ? { Authorization: `Bearer ${this.auth.token}` } : {}),
+				...(this.auth ? { Authorization: `Bearer ${this.auth.token}` } : {})
 			},
-			body: body ? JSON.stringify(body) : undefined,
+			body: body ? JSON.stringify(body) : undefined
 		});
 		if (!response.ok) {
 			throw new Error(`HTTP error! status: ${response.status}`);
@@ -206,7 +213,9 @@ class API {
 			return null;
 		}
 		try {
-			return await this.fetchJSON<NodeFavoritesResponse>(`/favorites/user/${this.auth.user.user_id}/`);
+			return await this.fetchJSON<NodeFavoritesResponse>(
+				`/favorites/user/${this.auth.user.user_id}/`
+			);
 		} catch (error) {
 			console.error('Error fetching favorite nodes:', error);
 			return null;
@@ -252,14 +261,14 @@ class API {
 	}
 
 	/***************** SOCKET */
-	
+
 	async startSocketConnection(): Promise<WebSocket | null> {
 		if (!this.auth) {
 			console.error('No authenticated user for socket connection.');
 			return null;
 		}
 		try {
-			const socketUrl = (this.base.replace(/^http/, 'ws') + this.version + `/faucet`);
+			const socketUrl = this.base.replace(/^http/, 'ws') + this.version + `/faucet`;
 			const socket = new WebSocket(socketUrl);
 			return socket;
 		} catch (error) {
@@ -269,7 +278,6 @@ class API {
 	}
 
 	/***************** STATICS */
-
 
 	static newEndpoint(): string {
 		if (Capacitor.isNativePlatform()) {
