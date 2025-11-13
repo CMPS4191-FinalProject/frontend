@@ -15,8 +15,14 @@ import '@/css/app.css';
 import App from '@/components/app.svelte';
 import { mount } from 'svelte';
 
+// Import and initialize API service
+import { initializeAPIInstance } from '@/ts/api-service';
+
 // Init F7 Svelte Plugin
 Framework7.use(Framework7Svelte);
+
+// Initialize API Instance early
+initializeAPIInstance();
 
 // Mount Svelte App
 mount(App, {

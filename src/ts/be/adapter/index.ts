@@ -13,6 +13,7 @@ class API {
 	base: string;
 	version: string;
 	auth: AuthResponse | null = null;
+	socket: WebSocket | null = null;
 
 	constructor(base: string, version: string) {
 		this.base = base;
@@ -269,8 +270,8 @@ class API {
 		}
 		try {
 			const socketUrl = this.base.replace(/^http/, 'ws') + this.version + `/faucet`;
-			const socket = new WebSocket(socketUrl);
-			return socket;
+			this.socket = new WebSocket(socketUrl);
+			return this.socket;
 		} catch (error) {
 			console.error('Error starting socket connection:', error);
 			return null;

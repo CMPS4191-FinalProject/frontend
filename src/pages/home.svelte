@@ -10,9 +10,10 @@
 		Page
 	} from 'framework7-svelte';
 
+	import { APIInstance } from '@/ts/api-service';
 	import * as API from '@/ts/be/adapter';
 	import { onMount } from 'svelte';
-	const APIInstance = new API.New(API.New.newEndpoint(), import.meta.env.VITE_BE_VERSION);
+	
 	let userFavorites: API.NodeFavoritesResponse | null = $state(null);
 
 	onMount(async () => {

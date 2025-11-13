@@ -1,3 +1,5 @@
+import { getAPIInstance } from '@/ts/api-service';
+import * as API from '@/ts/be/adapter';
 import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { CapacitorApp, CapacitorGlobal, Framework7Instance } from './types';
@@ -5,6 +7,7 @@ import { CapacitorApp, CapacitorGlobal, Framework7Instance } from './types';
 declare global {
 	interface Window {
 		Capacitor?: CapacitorGlobal;
+		APIInstance?: API.New; // Restore proper typing
 	}
 }
 
@@ -156,6 +159,9 @@ const capacitorApp: CapacitorApp = {
 	 * Initialize the capacitor app with Framework7 instance
 	 */
 	init(f7: Framework7Instance): void {
+		// Get the shared API Instance and set it on window for backwards compatibility
+		window.APIInstance = getAPIInstance();
+
 		// Save f7 instance
 		capacitorApp.f7 = f7;
 

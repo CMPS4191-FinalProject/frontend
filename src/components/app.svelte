@@ -44,7 +44,7 @@
 		<Link tabLink href="/settings"><Settings /></Link>
 	</Toolbar>
 </div>
-<App {...f7params} class="mt-12 pb-24 z-0">
+<App {...f7params} class="z-0 mt-12 pb-24">
 	<!-- Your main view, should have "view-main" class -->
 	<View main class="safe-areas" url="/" />
 </App>
