@@ -1,0 +1,24 @@
+{
+  "cwd": "/workspaces/qod-fe",
+  "type": [
+    "capacitor"
+  ],
+  "name": "What's the Quote",
+  "pkg": "com.alexdev404.qodfe",
+  "framework": "svelte",
+  "template": "single-view",
+  "cssPreProcessor": false,
+  "bundler": "vite",
+  "capacitor": {
+    "platforms": [
+      "android"
+    ]
+  },
+  "theming": {
+    "customColor": false,
+    "color": "#007aff",
+    "darkMode": false,
+    "iconFonts": false
+  },
+  "customBuild": false
+}

@@ -1,0 +1,61 @@
+@layer theme, base, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+/* TailwindCSS preflight with some base styles omitted */
+/* Borders are reset */
+*,
+::after,
+::before,
+::backdrop,
+::file-selector-button {
+	box-sizing: border-box;
+	border: 0 solid;
+}
+
+/* Images are block-level */
+img,
+svg,
+video,
+canvas,
+audio,
+iframe,
+embed,
+object {
+	display: block;
+	vertical-align: middle;
+}
+
+/* Images are constrained */
+img,
+video {
+	max-width: 100%;
+	height: auto;
+}
+
+/* Match-up the theme background color with Framework7 page background color */
+body {
+	background-color: var(--f7-page-bg-color);
+}
+
+/* Disable the dragging of your usual elements unless strictly specified */
+img,
+svg,
+video,
+canvas,
+audio,
+iframe,
+embed,
+object,
+a {
+	-webkit-user-drag: none;
+	user-select: none;
+}
+
+/* Prevent overscrolling the page---DIV element overscrolling prevention
+is very important */
+html,
+body,
+div {
+	overscroll-behavior: none;
+}
