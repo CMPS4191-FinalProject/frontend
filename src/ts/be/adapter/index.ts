@@ -1,6 +1,7 @@
 import { Capacitor } from '@capacitor/core';
-import { AuthResponse, LoginRequest, NodesResponse } from './types';
+import { AuthResponse, LoginRequest, NodeFavoritesResponse, NodesResponse } from './types';
 import { UserCreateRequest } from './types/auth';
+import { NodeFavoriteCreateRequest } from './types/favorites';
 import HealthCheckResponse from './types/healthcheck';
 import { NodeCreateRequest, NodeResponse, NodeUpdateRequest } from './types/nodes';
 export type { HealthCheckResponse };
@@ -189,6 +190,63 @@ class API {
 			return true;
 		} catch (error) {
 			console.error('Error updating node:', error);
+			return false;
+		}
+	}
+
+	/***************** FAVORITES */
+
+	/**
+	 * Fetch favorite nodes for the authenticated user.
+	 * @returns A promise that resolves to the node favorites response or null if fetching fails.
+	 */
+	async getFavoriteNodes(): Promise<NodeFavoritesResponse | null> {
+		if (!this.auth) {
+			console.error('No authenticated user for fetching favorite nodes.');
+			return null;
+		}
+		try {
+			return await this.fetchJSON<NodeFavoritesResponse>(`/favorites/user/${this.auth.user.user_id}/`);
+		} catch (error) {
+			console.error('Error fetching favorite nodes:', error);
+			return null;
+		}
+	}
+
+	/**
+	 * Add a favorite node for the authenticated user.
+	 * @param nodeFavoriteCreateRequest - The node favorite creation request containing device ID.
+	 * @returns A promise that resolves to true if addition is successful, false otherwise.
+	 */
+	async addFavoriteNode(nodeFavoriteCreateRequest: NodeFavoriteCreateRequest): Promise<boolean> {
+		if (!this.auth) {
+			console.error('No authenticated user for adding favorite node.');
+			return false;
+		}
+		try {
+			await this.fetchJSON<NodeResponse>(`/favorites`, nodeFavoriteCreateRequest, 'POST');
+			return true;
+		} catch (error) {
+			console.error('Error adding favorite node:', error);
+			return false;
+		}
+	}
+
+	/**
+	 * Remove a favorite node for the authenticated user by device ID.
+	 * @param deviceId - The device ID of the favorite node to remove.
+	 * @returns A promise that resolves to true if removal is successful, false otherwise.
+	 */
+	async removeFavoriteNode(deviceId: number): Promise<boolean> {
+		if (!this.auth) {
+			console.error('No authenticated user for removing favorite node.');
+			return false;
+		}
+		try {
+			await this.fetchJSON<null>(`/favorites/${deviceId}`, null, 'DELETE');
+			return true;
+		} catch (error) {
+			console.error('Error removing favorite node:', error);
 			return false;
 		}
 	}
