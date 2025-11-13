@@ -5,7 +5,15 @@ import { NodeFavoriteCreateRequest } from './types/favorites';
 import HealthCheckResponse from './types/healthcheck';
 import { NodeCreateRequest, NodeResponse, NodeUpdateRequest } from './types/nodes';
 export type {
-	AuthResponse, HealthCheckResponse, LoginRequest, NodeCreateRequest, NodeFavoriteCreateRequest, NodeFavoritesResponse, NodeResponse, NodesResponse, NodeUpdateRequest,
+	AuthResponse,
+	HealthCheckResponse,
+	LoginRequest,
+	NodeCreateRequest,
+	NodeFavoriteCreateRequest,
+	NodeFavoritesResponse,
+	NodeResponse,
+	NodesResponse,
+	NodeUpdateRequest,
 	UserCreateRequest
 };
 
@@ -31,7 +39,8 @@ class API {
 				'Content-Type': 'application/json',
 				...(this.auth ? { Authorization: `Bearer ${this.auth.token}` } : {})
 			},
-			body: body ? JSON.stringify(body) : undefined
+			body: body ? JSON.stringify(body) : undefined,
+			credentials: 'include' // Include cookies in cross-origin requests
 		});
 		if (!response.ok) {
 			throw new Error(`HTTP error! status: ${response.status}`);
@@ -77,11 +86,54 @@ class API {
 	}
 
 	/**
+	 * Logout the user and clear server-side cookie.
+	 * @returns A promise that resolves to true if logout is successful, false otherwise.
+	 */
+	async logout(): Promise<boolean> {
+		try {
+			await this.fetchJSON<null>('/auth/logout', null, 'POST');
+			this.auth = null;
+			return true;
+		} catch (error) {
+			console.error('Error during logout:', error);
+			this.auth = null; // Clear auth state even if server call fails
+			return false;
+		}
+	}
+
+	/**
 	 * Check if the user is currently authenticated.
 	 * @returns A promise that resolves to true if authenticated, false otherwise.
 	 */
 	async isAuthenticated(): Promise<boolean> {
-		return this.auth !== null;
+		// If we have auth token in memory, user is authenticated
+		if (this.auth !== null) {
+			return true;
+		}
+
+		// Try to verify authentication with server (this will check the cookie)
+		try {
+			// Make a simple authenticated request to verify the cookie works
+			const user = await this.fetchJSON<any>('/auth/me');
+			// If this succeeds, we are authenticated via cookie
+			// Get the authentication token from the cookie saved int the brower and save it into the cache
+			this.getCookie('authorization').then((cookieToken) => {
+				if (cookieToken === null) {
+					this.auth = null;
+					return false;
+				}
+
+				const auth: AuthResponse = {
+					user: user,
+					token: cookieToken
+				};
+				this.auth = auth;
+			});
+			return true;
+		} catch (error) {
+			// If it fails, we're not authenticated
+			return false;
+		}
 	}
 
 	/**
@@ -291,6 +343,29 @@ class API {
 	}
 
 	/***************** STATICS */
+
+	/**
+	 *
+	 * @param name The cookie's name
+	 * @returns A promise result containing a cookie
+	 */
+	async getCookie(name: string): Promise<string | null> {
+		const nameEQ = name + '=';
+		const ca = document.cookie.split(';'); // Split all cookies into an array
+
+		for (let i = 0; i < ca.length; i++) {
+			let c = ca[i];
+			while (c.charAt(0) === ' ') {
+				// Remove leading spaces
+				c = c.substring(1, c.length);
+			}
+			if (c.indexOf(nameEQ) === 0) {
+				// Check if this cookie starts with the desired name
+				return decodeURIComponent(c.substring(nameEQ.length, c.length)); // Return the decoded value
+			}
+		}
+		return null; // Return null if the cookie is not found
+	}
 
 	static newEndpoint(): string {
 		if (Capacitor.isNativePlatform()) {
