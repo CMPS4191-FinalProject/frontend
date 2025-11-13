@@ -38,7 +38,9 @@
 		const isAuthenticated = await APIInstance.isAuthenticated();
 		if (isAuthenticated === true) {
 			console.info('User is authenticated. Redirecting to home page.');
-			f7router.navigate('/home');
+			setTimeout(() => {
+				f7router.navigate('/home');
+			}, 500);
 		}
 	});
 
