@@ -43,7 +43,7 @@
 		{#if userFavorites != null}
 			{#each userFavorites as favorite}
 				<ListItem
-					link={`node/${favorite.device_id}`}
+					link={`/node/${favorite.device_id}`}
 					title={favorite.device_id}
 					text="View details and metrics"
 				/>
@@ -57,6 +57,6 @@
 
 	<BlockTitle>Navigation</BlockTitle>
 	<List strong inset dividersIos>
-		<ListItem link="healthcheck_ping" title="HealthCheck Endpoint" />
+		<ListItem link="/healthcheck_ping" title="HealthCheck Endpoint" />
 	</List>
 </Page>
