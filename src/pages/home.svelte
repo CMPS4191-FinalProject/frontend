@@ -9,6 +9,22 @@
 		NavTitleLarge,
 		Page
 	} from 'framework7-svelte';
+
+	import * as API from '@/ts/be/adapter';
+	import { onMount } from 'svelte';
+	const APIInstance = new API.New(API.New.newEndpoint(), import.meta.env.VITE_BE_VERSION);
+	let userFavorites: API.NodeFavoritesResponse | null = $state(null);
+
+	onMount(async () => {
+		const isAuthenticated = await APIInstance.isAuthenticated();
+		if(isAuthenticated === false) {
+			console.warn('User is not authenticated. Redirecting to login page.');
+			// window.location.href = '/login';
+		}
+		if (!userFavorites) {
+			userFavorites = await APIInstance.getFavoriteNodes();
+		}
+	});
 </script>
 
 <Page name="home">
@@ -21,13 +37,22 @@
 	</Navbar>
 
 	<!-- Page content -->
-	<BlockTitle>About the app</BlockTitle>
-	<Block>
-		<p>
-			A demo app connecting a frontend to a Go backend that delivers random quotes. Currently
-			includes a basic healthcheck endpoint.
-		</p>
-	</Block>
+	<BlockTitle>Favorite Nodes</BlockTitle>
+	<List strong inset dividersIos>
+		{#if userFavorites != null}
+			{#each userFavorites as favorite}
+				<ListItem
+					link={`node/${favorite.device_id}`}
+					title={favorite.device_id}
+					text="View details and metrics"
+				/>
+			{/each}
+		{:else}
+			<Block>
+				<p>Loading favorite nodes...</p>
+			</Block>
+		{/if}
+	</List>
 
 	<BlockTitle>Navigation</BlockTitle>
 	<List strong inset dividersIos>
