@@ -71,6 +71,7 @@ class API {
 		try {
 			const response = await this.fetchJSON<AuthResponse>('/auth/login', loginRequest, 'POST');
 			this.auth = response;
+			localStorage.setItem('authToken', response.token);
 			return response.token;
 		} catch (error) {
 			console.error('Error fetching auth token:', error);
@@ -119,10 +120,20 @@ class API {
 			// Get the authentication token from the cookie saved int the brower and save it into the cache
 			this.getCookie('authorization').then((cookieToken) => {
 				if (cookieToken === null) {
-					this.auth = null;
-					return false;
+					// Try localStorage as fallback
+					const storedToken = localStorage.getItem('authToken');
+					if (storedToken === null) {
+						this.auth = null;
+						return false;
+					}
+					const auth: AuthResponse = {
+						user: user,
+						token: storedToken
+					};
+					this.auth = auth;
+					return true;
 				}
-
+				
 				const auth: AuthResponse = {
 					user: user,
 					token: cookieToken
