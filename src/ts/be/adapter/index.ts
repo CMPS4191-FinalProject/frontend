@@ -4,6 +4,7 @@ import { UserCreateRequest, VerifyResponse } from './types/auth';
 import { NodeFavoriteCreateRequest } from './types/favorites';
 import HealthCheckResponse from './types/healthcheck';
 import { NodeCreateRequest, NodeResponse, NodeUpdateRequest } from './types/nodes';
+import { NodeDataResponse } from './types/nodedata';
 export type {
 	AuthResponse,
 	HealthCheckResponse,
@@ -14,6 +15,7 @@ export type {
 	NodeResponse,
 	NodesResponse,
 	NodeUpdateRequest,
+	NodeDataResponse,
 	UserCreateRequest,
 	VerifyResponse
 };
@@ -263,6 +265,20 @@ class API {
 		} catch (error) {
 			console.error('Error updating node:', error);
 			return false;
+		}
+	}
+
+	/**
+	 * Fetch historical data for a specific node.
+	 * @param nodeId - The ID of the node to fetch data for.
+	 * @returns A promise that resolves to the node data response or null if fetching fails.
+	 */
+	async getNodeData(nodeId: string): Promise<NodeDataResponse | null> {
+		try {
+			return await this.fetchJSON<NodeDataResponse>(`/nodedata/${nodeId}`);
+		} catch (error) {
+			console.error('Error fetching node data:', error);
+			return null;
 		}
 	}
 
