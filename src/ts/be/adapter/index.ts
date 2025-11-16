@@ -1,6 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { AuthResponse, LoginRequest, NodeFavoritesResponse, NodesResponse } from './types';
-import { UserCreateRequest } from './types/auth';
+import { UserCreateRequest, VerifyResponse } from './types/auth';
 import { NodeFavoriteCreateRequest } from './types/favorites';
 import HealthCheckResponse from './types/healthcheck';
 import { NodeCreateRequest, NodeResponse, NodeUpdateRequest } from './types/nodes';
@@ -14,7 +14,8 @@ export type {
 	NodeResponse,
 	NodesResponse,
 	NodeUpdateRequest,
-	UserCreateRequest
+	UserCreateRequest,
+	VerifyResponse
 };
 
 class API {
@@ -163,7 +164,7 @@ class API {
 	 */
 	async registerUser(userCreateRequest: UserCreateRequest): Promise<boolean> {
 		try {
-			await this.fetchJSON<AuthResponse>('/auth/register', userCreateRequest, 'POST');
+			await this.fetchJSON<VerifyResponse>('/auth/register', userCreateRequest, 'POST');
 			return true;
 		} catch (error) {
 			console.error('Error registering user:', error);

@@ -19,3 +19,7 @@ export interface AuthResponse {
 	user: AuthUser;
 	token: string;
 }
+
+export interface VerifyResponse {
+	message: string;
+}
