@@ -9,8 +9,8 @@
 </script>
 
 <div class="flex space-x-2">
-    {#each Array(value ?? 0) as _}
-        <Leaf class="w-6 h-6 text-green-500" />
+    {#each Array(5) as _, i}
+        <Leaf class="w-6 h-6 {i < (value ?? 0) ? 'text-green-500' : 'text-green-800'}" />
     {/each}
     
     {#if value === 0}
