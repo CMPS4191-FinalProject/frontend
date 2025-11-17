@@ -13,12 +13,12 @@
 	import { APIInstance } from '@/ts/api-service';
 	import * as API from '@/ts/be/adapter';
 	import { onMount } from 'svelte';
-	
+
 	let userFavorites: API.NodeFavoritesResponse | null = $state(null);
 
 	onMount(async () => {
 		const isAuthenticated = await APIInstance.isAuthenticated();
-		if(isAuthenticated === false) {
+		if (isAuthenticated === false) {
 			console.warn('User is not authenticated. Redirecting to login page.');
 			// window.location.href = '/login';
 		}
@@ -39,6 +39,16 @@
 
 	<!-- Page content -->
 	<BlockTitle>Favorite Nodes</BlockTitle>
+	{#if userFavorites != null && userFavorites.length === 0}
+		<Block>
+			<p>No favorite nodes found. Add some nodes to your favorites to see them here.</p>
+		</Block>
+	{/if}
+	{#if userFavorites === null}
+		<Block>
+			<p>Loading favorite nodes...</p>
+		</Block>
+	{/if}
 	<List strong inset dividersIos>
 		{#if userFavorites != null}
 			{#each userFavorites as favorite}
@@ -48,10 +58,6 @@
 					text="View details and metrics"
 				/>
 			{/each}
-		{:else}
-			<Block>
-				<p>Loading favorite nodes...</p>
-			</Block>
 		{/if}
 	</List>
 

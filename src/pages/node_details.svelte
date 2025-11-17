@@ -1,22 +1,31 @@
 <script lang="ts">
 	const { device_id }: { device_id: string } = $props();
+	import LeafGauge from '@/components/app/leaf_gauge.svelte';
 	import { APIInstance } from '@/ts/api-service';
 	import * as API from '@/ts/be/adapter';
 	import type { ISocketMessage } from '@/ts/be/adapter/types';
-	import { Block, BlockTitle, List, ListItem, Navbar, NavTitle, NavTitleLarge, Page } from 'framework7-svelte';
-	import { onMount } from 'svelte';
-	import LeafGauge from '@/components/app/leaf_gauge.svelte';
 	import { Chart, registerables } from 'chart.js';
-	
+	import {
+		Block,
+		BlockTitle,
+		List,
+		ListItem,
+		Navbar,
+		NavTitle,
+		NavTitleLarge,
+		Page
+	} from 'framework7-svelte';
+	import { onMount } from 'svelte';
+
 	Chart.register(...registerables);
-	
+
 	let nodeDetails: API.NodeResponse | null = $state(null);
-	let nodeData: API.NodeDataResponse | null = $state(null);
+	let nodeData: API.NodeDataWebsocketItem[] = $state([]);
 	let socketMessages: ISocketMessage[] = $state([]);
 	let isSocketConnected = $state(false);
 	let connectionStatus = $state('Disconnected');
 	let latestData: ISocketMessage['data'] | null = $state(null);
-	let chartCanvas: HTMLCanvasElement | undefined;
+	let chartCanvas: HTMLCanvasElement | null = $state(null);
 	let chart: Chart | null = null;
 
 	onMount(async () => {
@@ -25,13 +34,24 @@
 			nodeDetails = await APIInstance.getSingleNode(device_id);
 		}
 
+		setTimeout(() => {
+			render();
+		}, 1500);
 		// Fetch historical node data
-		if (!nodeData) {
-			nodeData = await APIInstance.getNodeData(device_id);
-			if (nodeData && chartCanvas) {
+		// if (!nodeData) {
+		setInterval(async () => {
+			// Wait for the canvas to be ready before rendering the chart
+			render();
+		}, 3000);
+
+		async function render() {
+			if (nodeData.length > 0 && nodeData && chartCanvas) {
+				console.log('Rendering chart', nodeData);
 				renderChart();
 			}
 		}
+
+		// }
 
 		// Start socket connection and monitor
 		await initializeSocketMonitor();
@@ -53,28 +73,28 @@
 		}
 
 		// Prepare data for the chart
-		const sortedData = [...nodeData.data].sort((a, b) => 
-			new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+		const sortedData = [...nodeData].sort(
+			(a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
 		);
 
-		const labels = sortedData.map(item => 
-			new Date(item.timestamp).toLocaleString()
-		);
-		const moistureValues = sortedData.map(item => item.moisture_content ?? 0);
+		const labels = sortedData.map((item) => new Date(item.timestamp).toLocaleString());
+		const moistureValues = sortedData.map((item) => item.data.moisture_content ?? 0);
 
 		// Create the chart
 		chart = new Chart(chartCanvas, {
 			type: 'line',
 			data: {
 				labels: labels,
-				datasets: [{
-					label: 'Moisture Content (%)',
-					data: moistureValues,
-					borderColor: 'rgb(34, 197, 94)',
-					backgroundColor: 'rgba(34, 197, 94, 0.1)',
-					tension: 0.3,
-					fill: true
-				}]
+				datasets: [
+					{
+						label: 'Moisture Content (%)',
+						data: moistureValues,
+						borderColor: 'rgb(34, 197, 94)',
+						backgroundColor: "rgba(34, 197, 94, 0.1)",
+						tension: 0.3,
+						fill: true
+					}
+				]
 			},
 			options: {
 				responsive: true,
@@ -114,19 +134,19 @@
 	}
 
 	async function initializeSocketMonitor() {
-        console.log("Initializing socket monitor for device:", device_id);
+		console.log('Initializing socket monitor for device:', device_id);
 		try {
 			// Start socket connection using APIInstance
-            let socket = APIInstance.socket;
-			
+			let socket = APIInstance.socket;
+
 			if (!socket) {
-                // connectionStatus = 'Failed to connect';
+				// connectionStatus = 'Failed to connect';
 				// return;
-                socket = await APIInstance.startSocketConnection();
-                if (!socket) {
-                    connectionStatus = 'Failed to connect';
-                    return;
-                }
+				socket = await APIInstance.startSocketConnection();
+				if (!socket) {
+					connectionStatus = 'Failed to connect';
+					return;
+				}
 			}
 
 			// Set up socket event handlers
@@ -139,7 +159,7 @@
 			socket.onclose = () => {
 				isSocketConnected = false;
 				connectionStatus = 'Disconnected';
-                APIInstance.socket = null;
+				APIInstance.socket = null;
 				console.info('Socket disconnected');
 			};
 
@@ -152,24 +172,23 @@
 			socket.onmessage = (event) => {
 				try {
 					const message: ISocketMessage = JSON.parse(event.data);
-					
 					// Filter messages for this specific device
 					if (message.device_id === parseInt(device_id)) {
+						nodeData.push(message as API.NodeDataWebsocketItem);
 						// Add to messages array (keep only last 50 messages)
 						socketMessages = [message, ...socketMessages].slice(0, 50);
-						
+
 						// Update latest data
 						if (message.data) {
 							latestData = message.data;
 						}
-						
+
 						console.info('Received socket message for device:', device_id, message);
 					}
 				} catch (error) {
 					console.error('Error parsing socket message:', error);
 				}
 			};
-
 		} catch (error) {
 			console.error('Error initializing socket monitor:', error);
 			connectionStatus = 'Failed to initialize';
@@ -204,7 +223,7 @@
 
 	<!-- Page content -->
 	<BlockTitle>Node Details: {device_id}</BlockTitle>
-	
+
 	<!-- Node Information -->
 	{#if nodeDetails != null}
 		<Block>
@@ -234,7 +253,7 @@
 	{/if}
 
 	<!-- Moisture Content Chart -->
-	{#if nodeData && nodeData.data.length > 0}
+	{#if nodeData !== null && nodeData.length > 0}
 		<BlockTitle>Moisture Content History</BlockTitle>
 		<Block>
 			<div class="chart-container">
@@ -246,17 +265,16 @@
 	<!-- Socket Monitor Section -->
 	<BlockTitle>Real-time Monitor</BlockTitle>
 	<Block>
-		<p><strong>Connection Status:</strong> 
+		<p>
+			<strong>Connection Status:</strong>
 			<span class={isSocketConnected ? 'status-connected' : 'status-disconnected'}>
 				{connectionStatus}
 			</span>
 		</p>
-		
+
 		{#if !isSocketConnected}
 			<p>
-				<button class="button button-fill" onclick={reconnectSocket}>
-					Reconnect
-				</button>
+				<button class="button button-fill" onclick={reconnectSocket}> Reconnect </button>
 			</p>
 		{/if}
 	</Block>
@@ -265,12 +283,10 @@
 	<BlockTitle>
 		Recent Messages ({socketMessages.length})
 		{#if socketMessages.length > 0}
-			<button class="button button-small button-outline" onclick={clearMessages}>
-				Clear
-			</button>
+			<button class="button button-small button-outline" onclick={clearMessages}> Clear </button>
 		{/if}
 	</BlockTitle>
-	
+
 	{#if socketMessages.length > 0}
 		<List>
 			{#each socketMessages as message (message.timestamp)}
@@ -279,7 +295,8 @@
 						<div class="item-inner">
 							<div class="item-title">
 								<div class="message-header">
-									<strong>Type:</strong> {message.type}
+									<strong>Type:</strong>
+									{message.type}
 									<small class="timestamp">{formatTimestamp(message.timestamp)}</small>
 								</div>
 								<div class="message-content">
@@ -297,7 +314,9 @@
 	{:else}
 		<Block>
 			<p class="text-color-gray">
-				{isSocketConnected ? 'No messages received yet for this device.' : 'Connect to start receiving messages.'}
+				{isSocketConnected
+					? 'No messages received yet for this device.'
+					: 'Connect to start receiving messages.'}
 			</p>
 		</Block>
 	{/if}
@@ -308,34 +327,34 @@
 		color: var(--f7-theme-color-green);
 		font-weight: bold;
 	}
-	
+
 	.status-disconnected {
 		color: var(--f7-theme-color-red);
 		font-weight: bold;
 	}
-	
+
 	.message-header {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
 		margin-block-end: 8px;
 	}
-	
+
 	.timestamp {
 		font-size: 12px;
 		color: var(--f7-text-color);
 		opacity: 0.7;
 	}
-	
+
 	.message-content p {
 		margin: 4px 0;
 		font-size: 14px;
 	}
-	
+
 	.button-small {
 		margin-inline-start: 10px;
 	}
-	
+
 	.text-color-gray {
 		color: var(--f7-text-color);
 		opacity: 0.6;

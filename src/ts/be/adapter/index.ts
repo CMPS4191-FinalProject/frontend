@@ -9,7 +9,7 @@ import {
 import { UserCreateRequest, VerifyResponse } from './types/auth';
 import { NodeFavoriteCreateRequest } from './types/favorites';
 import HealthCheckResponse from './types/healthcheck';
-import { NodeDataResponse } from './types/nodedata';
+import { NodeDataResponse, NodeDataWebsocketItem } from './types/nodedata';
 import { NodeCreateRequest, NodeResponse, NodeUpdateRequest } from './types/nodes';
 export type {
 	AuthResponse,
@@ -17,6 +17,7 @@ export type {
 	LoginRequest,
 	NodeCreateRequest,
 	NodeDataResponse,
+	NodeDataWebsocketItem,
 	NodeFavoriteCreateRequest,
 	NodeFavoritesResponse,
 	NodeResponse,
@@ -313,7 +314,7 @@ class API {
 	 */
 	async getNodeData(nodeId: string): Promise<NodeDataResponse | null> {
 		try {
-			return await this.fetchJSON<NodeDataResponse>(`/nodedata/${nodeId}`);
+			return await this.fetchJSON<NodeDataResponse>(`/nodedata/device/${nodeId}`);
 		} catch (error) {
 			console.error('Error fetching node data:', error);
 			return null;
