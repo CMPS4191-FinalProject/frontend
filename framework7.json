@@ -3,8 +3,8 @@
   "type": [
     "capacitor"
   ],
-  "name": "What's the Quote",
-  "pkg": "com.alexdev404.qodfe",
+  "name": "Soil Moisture Monitor App",
+  "pkg": "com.alexdev404.sma",
   "framework": "svelte",
   "template": "single-view",
   "cssPreProcessor": false,

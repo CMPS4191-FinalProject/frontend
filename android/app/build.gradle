@@ -4,7 +4,7 @@ android {
     namespace "io.framework7.myapp"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId 'me.alexdev404.qodfe'
+        applicationId 'com.alexdev404.sma'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

@@ -1,6 +1,6 @@
 {
-	"appId": "com.alexdev404.qodfe",
-	"appName": "What's the Quote",
+	"appId": "com.alexdev404.sma",
+	"appName": "Soil Moisture Monitor App",
 	"bundledWebRuntime": false,
 	"npmClient": "npm",
 	"webDir": "www",
