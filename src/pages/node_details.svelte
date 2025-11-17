@@ -358,7 +358,6 @@
 				<LeafGauge value={Math.floor((latestData.moisture_content || 0) / 20)} />
 			</div>
 			<p class="margin-top"><strong>Device ID:</strong> {latestData.device_id}</p>
-			<p><strong>User ID:</strong> {latestData.user_id}</p>
 		</Block>
 	{/if}
 
@@ -389,6 +388,10 @@
 			{#if nodeDetails.status}
 				<p><strong>Status:</strong> {nodeDetails.status}</p>
 			{/if}
+		{/if}
+
+		{#if latestData}
+			<p><strong>Owning User ID:</strong> {latestData.user_id}</p>
 		{/if}
 
 		{#if !isSocketConnected}
