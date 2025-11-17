@@ -1,9 +1,9 @@
 {
-  "name": "my-app",
+  "name": "sma",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "What's the Quote - Daily Inspirational Quotes",
+  "description": "Soil Moisture Monitor App",
   "repository": "",
   "license": "UNLICENSED",
   "scripts": {
