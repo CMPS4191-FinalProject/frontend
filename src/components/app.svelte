@@ -5,7 +5,7 @@
 
 	import capacitorApp from '@/ts/capacitor-app';
 	import routes from '@/ts/routes';
-	import { House, Settings } from '@lucide/svelte';
+	import { Heart, House, Settings } from '@lucide/svelte';
 
 	const device = getDevice();
 	// Framework7 Parameters
@@ -41,6 +41,7 @@
 <div class="fixed bottom-0 left-0 right-0 z-50 h-fit w-full">
 	<Toolbar top tabbar class="w-full">
 		<Link tabLink href="/"><House /></Link>
+		<Link tabLink href="/favorites"><Heart /></Link>
 		<Link tabLink href="/settings"><Settings /></Link>
 	</Toolbar>
 </div>
