@@ -46,7 +46,7 @@
 
 		async function render() {
 			if (nodeData.length > 0 && nodeData && chartCanvas) {
-				console.log('Rendering chart', nodeData);
+				// console.log('Rendering chart', nodeData);
 				renderChart();
 			}
 		}
