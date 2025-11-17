@@ -302,8 +302,6 @@
 						if (message.data) {
 							latestData = message.data;
 						}
-
-						renderIfReady();
 						console.info('Received socket message for device:', device_id, message);
 					}
 				} catch (error) {
