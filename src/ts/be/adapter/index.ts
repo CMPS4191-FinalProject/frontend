@@ -63,7 +63,8 @@ class API {
 			throw new Error(`HTTP error! status: ${response.status}`);
 		}
 		try {
-			return await response.json();
+			const r = response.clone();
+			return await r.json();
 		} catch (error) {
 			const text = await response.text();
 			return { message: text, status: false } as T;
@@ -235,9 +236,9 @@ class API {
 	 * Fetch all monitoring nodes.
 	 * @returns A promise that resolves to the nodes response or null if fetching fails.
 	 */
-	async getAllNodes(): Promise<NodesResponse | null> {
+	async getAllNodes(): Promise<NodeResponse[] | null> {
 		try {
-			return await this.fetchJSON<NodesResponse>('/nodes/');
+			return await this.fetchJSON<NodeResponse[]>('/nodes/');
 		} catch (error) {
 			console.error('Error fetching nodes:', error);
 			return null;

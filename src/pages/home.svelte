@@ -54,7 +54,7 @@
 			{#each userFavorites as favorite}
 				<ListItem
 					link={`/node/${favorite.device_id}`}
-					title={favorite.device_id}
+					title={"Node " + favorite.device_id}
 					text="View details and metrics"
 				/>
 			{/each}

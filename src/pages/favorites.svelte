@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Heart } from '@lucide/svelte';
 	import {
 		Block,
 		BlockTitle,
@@ -9,72 +10,50 @@
 		NavTitleLarge,
 		Page
 	} from 'framework7-svelte';
-	import { Heart } from '@lucide/svelte';
 
 	import { APIInstance } from '@/ts/api-service';
 	import * as API from '@/ts/be/adapter';
+	import type { Router } from 'framework7/types';
 	import { onMount } from 'svelte';
 
 	let allNodes: API.NodeResponse[] | null = $state(null);
 	let favoriteNodes: Set<number> = $state(new Set());
 	let isLoading = $state(true);
-	let isDemoMode = $state(false);
 
-	// Demo data for when backend is not available
-	const demoNodes: API.NodeResponse[] = [
-		{ device_id: 101, status: 'ONLINE', status_details: 'Operating normally' },
-		{ device_id: 102, status: 'ONLINE', status_details: 'All systems go' },
-		{ device_id: 103, status: 'OFFLINE', status_details: 'Maintenance mode' },
-		{ device_id: 104, status: 'ONLINE', status_details: 'Recently updated' },
-		{ device_id: 105, status: 'ERROR', status_details: 'Sensor malfunction' }
-	];
+	interface F7Router {
+		f7router: Router.Router;
+	}
+
+	const { f7router }: F7Router = $props();
 
 	onMount(async () => {
 		const isAuthenticated = await APIInstance.isAuthenticated();
 		if (isAuthenticated === false) {
-			console.warn('User is not authenticated. Using demo mode.');
-			isDemoMode = true;
-			allNodes = demoNodes;
-			favoriteNodes = new Set([101, 104]); // Demo favorites
+			console.warn('User is not authenticated. Redirecting to login.');
+
 			isLoading = false;
+			setTimeout(() => {
+				f7router.navigate('/login');
+			}, 850);
 			return;
 		}
-		
+
 		// Fetch all nodes
 		const nodesResponse = await APIInstance.getAllNodes();
 		if (nodesResponse !== null) {
-			allNodes = nodesResponse.data;
-		} else {
-			// Fallback to demo mode if API fails
-			isDemoMode = true;
-			allNodes = demoNodes;
+			allNodes = nodesResponse;
 		}
 
 		// Fetch user's favorite nodes
 		const favoritesResponse = await APIInstance.getFavoriteNodes();
 		if (favoritesResponse !== null) {
 			favoriteNodes = new Set(favoritesResponse.map((fav) => fav.device_id));
-		} else if (isDemoMode) {
-			favoriteNodes = new Set([101, 104]);
 		}
 
 		isLoading = false;
 	});
 
 	async function toggleFavorite(deviceId: number) {
-		if (isDemoMode) {
-			// Demo mode - just toggle locally
-			const isFavorite = favoriteNodes.has(deviceId);
-			const newFavorites = new Set(favoriteNodes);
-			if (isFavorite) {
-				newFavorites.delete(deviceId);
-			} else {
-				newFavorites.add(deviceId);
-			}
-			favoriteNodes = newFavorites;
-			return;
-		}
-
 		const isFavorite = favoriteNodes.has(deviceId);
 
 		if (isFavorite) {
@@ -108,11 +87,6 @@
 
 	<!-- Page content -->
 	<BlockTitle>All Nodes</BlockTitle>
-	{#if isDemoMode}
-		<Block class="demo-notice">
-			<p><strong>Demo Mode:</strong> Backend not available. Showing demo data.</p>
-		</Block>
-	{/if}
 	{#if isLoading}
 		<Block>
 			<p>Loading nodes...</p>
@@ -130,7 +104,6 @@
 		{#if allNodes !== null && allNodes.length > 0}
 			{#each allNodes as node}
 				<ListItem
-					link={isDemoMode ? '#' : `/node/${node.device_id}`}
 					title={`Node ${node.device_id}`}
 					text={`Status: ${node.status}${node.status_details ? ' - ' + node.status_details : ''}`}
 				>
@@ -186,17 +159,5 @@
 	:global(.favorite-inactive) {
 		color: var(--f7-text-color);
 		opacity: 0.5;
-	}
-
-	.demo-notice {
-		background-color: rgba(255, 193, 7, 0.1);
-		border-left: 4px solid #ffc107;
-		padding: 12px;
-		margin: 16px;
-	}
-
-	.demo-notice p {
-		margin: 0;
-		color: #856404;
 	}
 </style>
