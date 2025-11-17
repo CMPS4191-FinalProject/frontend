@@ -173,6 +173,7 @@
 			type: 'line',
 			data: {
 				labels: labels,
+				
 				datasets: [
 					{
 						label: 'Moisture Content (%)',
@@ -193,7 +194,7 @@
 						position: 'top'
 					},
 					title: {
-						display: true,
+						display: false,
 						text: 'Moisture Content Over Time'
 					}
 				},
@@ -202,18 +203,18 @@
 						beginAtZero: true,
 						max: 100,
 						title: {
-							display: true,
+							display: false,
 							text: 'Moisture (%)'
 						}
 					},
 					x: {
 						title: {
-							display: true,
+							display: false,
 							text: 'Time'
 						},
 						ticks: {
-							maxRotation: 45,
-							minRotation: 45
+							maxRotation: 70,
+							minRotation: 70
 						}
 					}
 				}
