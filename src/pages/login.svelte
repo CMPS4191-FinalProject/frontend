@@ -62,9 +62,6 @@
 			};
 
 			const res = await APIInstance.getAuthToken(loginRequest);
-
-			console.log(res)
-
 			if (res && res instanceof Object && !('error' in res)) {
 				console.info('Login successful. Redirecting to home page.');
 				f7router.navigate('/home');
