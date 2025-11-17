@@ -68,10 +68,11 @@
 			if (res && res instanceof Object && !('error' in res)) {
 				console.info('Login successful. Redirecting to home page.');
 				f7router.navigate('/home');
-			} else if (res && res instanceof Object && 'error' in res) {
+			} 
+			
+			if (res && res instanceof Object && 'error' in res) {
 				errorMessage = res.message || 'Invalid username or password.';
 			}
-			f7router.navigate('/home');
 		} catch (error) {
 			console.error('Login error:', error);
 			errorMessage = 'Login failed. Please check your connection and try again.';
