@@ -9,17 +9,14 @@ import {
 import { UserCreateRequest, VerifyResponse } from './types/auth';
 import { NodeFavoriteCreateRequest } from './types/favorites';
 import HealthCheckResponse from './types/healthcheck';
-import { NodeDataResponse, NodeDataWebsocketItem } from './types/nodedata';
+import { NodeDataItem2, NodeDataItemPrimitive, NodeDataResponse, NodeDataWebsocketItem } from './types/nodedata';
 import { NodeCreateRequest, NodeResponse, NodeUpdateRequest } from './types/nodes';
 export type {
 	AuthResponse,
 	HealthCheckResponse,
 	LoginRequest,
-	NodeCreateRequest,
-	NodeDataResponse,
-	NodeDataWebsocketItem,
-	NodeFavoriteCreateRequest,
-	NodeFavoritesResponse,
+	NodeCreateRequest, NodeDataItem2, NodeDataItemPrimitive, NodeDataResponse,
+	NodeDataWebsocketItem, NodeFavoriteCreateRequest, NodeFavoritesResponse,
 	NodeResponse,
 	NodesResponse,
 	NodeUpdateRequest,

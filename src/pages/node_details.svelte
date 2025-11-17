@@ -20,7 +20,7 @@
 	Chart.register(...registerables);
 
 	let nodeDetails: API.NodeResponse | null = $state(null);
-	let nodeData: API.NodeDataWebsocketItem[] = $state([]);
+	let nodeData: API.NodeDataItem2[] = $state([]);
 	let socketMessages: ISocketMessage[] = $state([]);
 	let isSocketConnected = $state(false);
 	let connectionStatus = $state('Disconnected');
@@ -32,6 +32,14 @@
 		// Fetch node details
 		if (!nodeDetails) {
 			nodeDetails = await APIInstance.getSingleNode(device_id);
+		}
+
+		if (nodeData.length === 0) {
+			// Fetch historical node data
+			const historicalData = await APIInstance.getNodeData(device_id);
+			if (historicalData !== null) {
+				nodeData = historicalData;
+			}
 		}
 
 		setTimeout(() => {
@@ -78,7 +86,7 @@
 		);
 
 		const labels = sortedData.map((item) => new Date(item.timestamp).toLocaleString());
-		const moistureValues = sortedData.map((item) => item.data.moisture_content ?? 0);
+		const moistureValues = sortedData.map((item) => item.moisture_content ?? 0);
 
 		// Create the chart
 		chart = new Chart(chartCanvas, {
@@ -90,7 +98,7 @@
 						label: 'Moisture Content (%)',
 						data: moistureValues,
 						borderColor: 'rgb(34, 197, 94)',
-						backgroundColor: "rgba(34, 197, 94, 0.1)",
+						backgroundColor: 'rgba(34, 197, 94, 0.1)',
 						tension: 0.3,
 						fill: true
 					}
@@ -174,7 +182,7 @@
 					const message: ISocketMessage = JSON.parse(event.data);
 					// Filter messages for this specific device
 					if (message.device_id === parseInt(device_id)) {
-						nodeData.push(message as API.NodeDataWebsocketItem);
+						nodeData.push(message.data as API.NodeDataItem2);
 						// Add to messages array (keep only last 50 messages)
 						socketMessages = [message, ...socketMessages].slice(0, 50);
 

@@ -16,6 +16,11 @@ export interface NodeDataItem extends NodeDataItemPrimitive {
 	id: number;
 	timestamp: string; // ISO 8601 datetime string
 }
+
+export interface NodeDataItem2 extends NodeDataItemPrimitive {
+	timestamp: string; // ISO 8601 datetime string
+}
+
 export interface NodeDataWebsocketItem {
 	device_id: number;
 	message: string;
