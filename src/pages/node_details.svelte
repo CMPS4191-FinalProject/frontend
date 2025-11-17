@@ -385,13 +385,12 @@
 			{#if nodeDetails.status_details}
 				<p><strong>Status Details:</strong> {nodeDetails.status_details}</p>
 			{/if}
+			{#if latestData}
+				<p><strong>Owning User ID:</strong> {latestData.user_id}</p>
+			{/if}
 			{#if nodeDetails.status}
 				<p><strong>Status:</strong> {nodeDetails.status}</p>
 			{/if}
-		{/if}
-
-		{#if latestData}
-			<p><strong>Owning User ID:</strong> {latestData.user_id}</p>
 		{/if}
 
 		{#if !isSocketConnected}
