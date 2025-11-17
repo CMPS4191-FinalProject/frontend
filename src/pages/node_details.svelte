@@ -32,8 +32,23 @@
 	const MIN_MOISTURE_DELTA = 0.75;
 	const MIN_TIME_GAP_MS = 5 * 60 * 1000;
 
+	function parseTimestamp(input: string): Date {
+		const parsed = new Date(input);
+		if (!isNaN(parsed.getTime())) {
+			return parsed;
+		}
+
+		const isoNormalized = input.replace(/(\.\d{3})\d+/, '$1');
+		const fallback = new Date(isoNormalized);
+		if (!isNaN(fallback.getTime())) {
+			return fallback;
+		}
+
+		return new Date(NaN);
+	}
+
 	function toTimestampMs(sample: API.NodeDataItem2): number {
-		return new Date(sample.timestamp).getTime();
+		return parseTimestamp(sample.timestamp).getTime();
 	}
 
 	function moistureValue(sample: API.NodeDataItem2): number {
@@ -44,6 +59,10 @@
 		if (data.length === 0) {
 			return [];
 		}
+		if(data.length <= MAX_CHART_POINTS) {
+			// No need to downsample
+			return data;
+		}
 
 		const sorted = [...data].sort((a, b) => toTimestampMs(a) - toTimestampMs(b));
 		const seenTimestamps = new Set<number>();
@@ -51,13 +70,17 @@
 
 		for (const sample of sorted) {
 			const timestamp = toTimestampMs(sample);
-			if (!seenTimestamps.has(timestamp)) {
+			if (!isNaN(timestamp) && !seenTimestamps.has(timestamp)) {
 				seenTimestamps.add(timestamp);
 				uniqueSamples.push(sample);
 			}
 		}
 
 		if (uniqueSamples.length <= 2) {
+			return uniqueSamples;
+		}
+
+		if (uniqueSamples.length <= MAX_CHART_POINTS) {
 			return uniqueSamples;
 		}
 
@@ -165,7 +188,10 @@
 			return;
 		}
 
-		const labels = keyframes.map((item) => new Date(item.timestamp).toLocaleString());
+		const labels = keyframes.map((item) => {
+			const parsed = parseTimestamp(item.timestamp);
+			return isNaN(parsed.getTime()) ? item.timestamp : parsed.toLocaleString();
+		});
 		const moistureValues = keyframes.map((item) => item.moisture_content ?? 0);
 
 		// Create the chart
@@ -173,7 +199,7 @@
 			type: 'line',
 			data: {
 				labels: labels,
-				
+
 				datasets: [
 					{
 						label: 'Moisture Content (%)',
@@ -263,7 +289,12 @@
 					const message: ISocketMessage = JSON.parse(event.data);
 					// Filter messages for this specific device
 					if (message.device_id === parseInt(device_id)) {
-						nodeData.push(message.data as API.NodeDataItem2);
+						// Store message data with timestamp
+						const message_new = {
+							...message.data,
+							timestamp: message.timestamp
+						}
+						nodeData.push(message_new as API.NodeDataItem2);
 						// Add to messages array (keep only last 50 messages)
 						socketMessages = [message, ...socketMessages].slice(0, 50);
 
@@ -273,7 +304,6 @@
 						}
 
 						renderIfReady();
-
 						console.info('Received socket message for device:', device_id, message);
 					}
 				} catch (error) {
@@ -299,7 +329,8 @@
 	}
 
 	function formatTimestamp(timestamp: string): string {
-		return new Date(timestamp).toLocaleString();
+		const parsed = parseTimestamp(timestamp);
+		return isNaN(parsed.getTime()) ? timestamp : parsed.toLocaleString();
 	}
 </script>
 
