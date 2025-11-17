@@ -59,7 +59,7 @@
 		if (data.length === 0) {
 			return [];
 		}
-		if(data.length <= MAX_CHART_POINTS) {
+		if (data.length <= MAX_CHART_POINTS) {
 			// No need to downsample
 			return data;
 		}
@@ -293,7 +293,7 @@
 						const message_new = {
 							...message.data,
 							timestamp: message.timestamp
-						}
+						};
 						nodeData.push(message_new as API.NodeDataItem2);
 						// Add to messages array (keep only last 50 messages)
 						socketMessages = [message, ...socketMessages].slice(0, 50);
@@ -335,30 +335,20 @@
 <Page>
 	<!-- Top Navbar -->
 	<Navbar sliding={false}>
-		<!-- Nav Title -- When scrolling -->
-		<NavTitle sliding>{import.meta.env.VITE_APP_NAME}</NavTitle>
-		<!-- Large Nav Title -- When at the top -->
-		<NavTitleLarge>{import.meta.env.VITE_APP_NAME}</NavTitleLarge>
+		{#if nodeDetails != null}
+			<!-- Nav Title -- When scrolling -->
+			<NavTitle sliding>Node {nodeDetails.device_id}</NavTitle>
+			<!-- Large Nav Title -- When at the top -->
+			<NavTitleLarge>Node {nodeDetails.device_id}</NavTitleLarge>
+		{:else}
+			<!-- Nav Title -- When scrolling -->
+			<NavTitle sliding>{import.meta.env.VITE_APP_NAME}</NavTitle>
+			<!-- Large Nav Title -- When at the top -->
+			<NavTitleLarge>{import.meta.env.VITE_APP_NAME}</NavTitleLarge>
+		{/if}
 	</Navbar>
 
 	<!-- Page content -->
-	<BlockTitle>Node Details: {device_id}</BlockTitle>
-
-	<!-- Node Information -->
-	{#if nodeDetails != null}
-		<Block>
-			<p><strong>Device ID:</strong> {nodeDetails.device_id}</p>
-			<p><strong>Status:</strong> {nodeDetails.status}</p>
-			{#if nodeDetails.status_details}
-				<p><strong>Status Details:</strong> {nodeDetails.status_details}</p>
-			{/if}
-		</Block>
-	{:else}
-		<Block>
-			<p>Loading node details...</p>
-		</Block>
-	{/if}
-
 	<!-- Latest Data with Leaf Gauge -->
 	{#if latestData}
 		<BlockTitle>Latest Reading</BlockTitle>
@@ -391,6 +381,15 @@
 				{connectionStatus}
 			</span>
 		</p>
+
+		{#if nodeDetails !== null}
+			{#if nodeDetails.status_details}
+				<p><strong>Status Details:</strong> {nodeDetails.status_details}</p>
+			{/if}
+			{#if nodeDetails.status}
+				<p><strong>Status:</strong> {nodeDetails.status}</p>
+			{/if}
+		{/if}
 
 		{#if !isSocketConnected}
 			<p>
