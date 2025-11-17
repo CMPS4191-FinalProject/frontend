@@ -28,6 +28,97 @@
 	let chartCanvas: HTMLCanvasElement | null = $state(null);
 	let chart: Chart | null = null;
 
+	const MAX_CHART_POINTS = 32;
+	const MIN_MOISTURE_DELTA = 0.75;
+	const MIN_TIME_GAP_MS = 5 * 60 * 1000;
+
+	function toTimestampMs(sample: API.NodeDataItem2): number {
+		return new Date(sample.timestamp).getTime();
+	}
+
+	function moistureValue(sample: API.NodeDataItem2): number {
+		return sample.moisture_content ?? 0;
+	}
+
+	function extractKeyframes(data: API.NodeDataItem2[]): API.NodeDataItem2[] {
+		if (data.length === 0) {
+			return [];
+		}
+
+		const sorted = [...data].sort((a, b) => toTimestampMs(a) - toTimestampMs(b));
+		const seenTimestamps = new Set<number>();
+		const uniqueSamples: API.NodeDataItem2[] = [];
+
+		for (const sample of sorted) {
+			const timestamp = toTimestampMs(sample);
+			if (!seenTimestamps.has(timestamp)) {
+				seenTimestamps.add(timestamp);
+				uniqueSamples.push(sample);
+			}
+		}
+
+		if (uniqueSamples.length <= 2) {
+			return uniqueSamples;
+		}
+
+		const keyframes: API.NodeDataItem2[] = [];
+		const addSample = (sample: API.NodeDataItem2) => {
+			if (keyframes.length === 0 || keyframes[keyframes.length - 1] !== sample) {
+				keyframes.push(sample);
+			}
+		};
+
+		addSample(uniqueSamples[0]);
+		let lastKept = uniqueSamples[0];
+
+		for (let i = 1; i < uniqueSamples.length - 1; i++) {
+			const sample = uniqueSamples[i];
+			const delta = Math.abs(moistureValue(sample) - moistureValue(lastKept));
+			const timeGap = toTimestampMs(sample) - toTimestampMs(lastKept);
+
+			if (delta >= MIN_MOISTURE_DELTA || timeGap >= MIN_TIME_GAP_MS) {
+				addSample(sample);
+				lastKept = sample;
+			}
+		}
+
+		addSample(uniqueSamples[uniqueSamples.length - 1]);
+
+		const desiredPoints = Math.min(MAX_CHART_POINTS, uniqueSamples.length);
+
+		if (keyframes.length < desiredPoints) {
+			const step = desiredPoints > 1 ? (uniqueSamples.length - 1) / (desiredPoints - 1) : 0;
+			for (let i = 0; i < desiredPoints; i++) {
+				const index = desiredPoints > 1 ? Math.floor(i * step) : 0;
+				addSample(uniqueSamples[index]);
+			}
+		}
+
+		if (keyframes.length > MAX_CHART_POINTS) {
+			const step = Math.ceil(keyframes.length / MAX_CHART_POINTS);
+			const sampled: API.NodeDataItem2[] = [];
+
+			for (let i = 0; i < keyframes.length; i += step) {
+				sampled.push(keyframes[i]);
+			}
+
+			const lastSample = keyframes[keyframes.length - 1];
+			if (sampled[sampled.length - 1] !== lastSample) {
+				sampled.push(lastSample);
+			}
+
+			return sampled;
+		}
+
+		return keyframes;
+	}
+
+	function renderIfReady() {
+		if (nodeData.length > 0 && chartCanvas) {
+			renderChart();
+		}
+	}
+
 	onMount(async () => {
 		// Fetch node details
 		if (!nodeDetails) {
@@ -43,23 +134,11 @@
 		}
 
 		setTimeout(() => {
-			render();
+			renderIfReady();
 		}, 1500);
-		// Fetch historical node data
-		// if (!nodeData) {
-		setInterval(async () => {
-			// Wait for the canvas to be ready before rendering the chart
-			render();
+		setInterval(() => {
+			renderIfReady();
 		}, 3000);
-
-		async function render() {
-			if (nodeData.length > 0 && nodeData && chartCanvas) {
-				// console.log('Rendering chart', nodeData);
-				renderChart();
-			}
-		}
-
-		// }
 
 		// Start socket connection and monitor
 		await initializeSocketMonitor();
@@ -81,12 +160,13 @@
 		}
 
 		// Prepare data for the chart
-		const sortedData = [...nodeData].sort(
-			(a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-		);
+		const keyframes = extractKeyframes(nodeData);
+		if (keyframes.length === 0) {
+			return;
+		}
 
-		const labels = sortedData.map((item) => new Date(item.timestamp).toLocaleString());
-		const moistureValues = sortedData.map((item) => item.moisture_content ?? 0);
+		const labels = keyframes.map((item) => new Date(item.timestamp).toLocaleString());
+		const moistureValues = keyframes.map((item) => item.moisture_content ?? 0);
 
 		// Create the chart
 		chart = new Chart(chartCanvas, {
@@ -190,6 +270,8 @@
 						if (message.data) {
 							latestData = message.data;
 						}
+
+						renderIfReady();
 
 						console.info('Received socket message for device:', device_id, message);
 					}
@@ -372,11 +454,11 @@
 
 	.chart-container {
 		position: relative;
-		height: 300px;
-		width: 100%;
+		block-size: 300px;
+		inline-size: 100%;
 	}
 
 	.margin-top {
-		margin-top: 12px;
+		margin-block-start: 12px;
 	}
 </style>
