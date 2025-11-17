@@ -12,7 +12,7 @@
 	} from 'framework7-svelte';
 
 	import { APIInstance } from '@/ts/api-service';
-	import type { LoginRequest } from '@/ts/be/adapter';
+	import type { LoginRequest, UserCreateRequest } from '@/ts/be/adapter';
 	import { Lock, User } from '@lucide/svelte';
 	import type { Router } from 'framework7/types';
 	import { onMount } from 'svelte';
@@ -28,6 +28,7 @@
 	let password = $state('');
 	let isLoading = $state(false);
 	let errorMessage = $state('');
+	let isRegisterMode = $state(false);
 
 	// Form validation
 	const isFormValid = $derived(() => {
@@ -74,19 +75,58 @@
 			isLoading = false;
 		}
 	}
+
+	async function handleRegister() {
+		if (!isFormValid) {
+			errorMessage = 'Please fill in all fields with valid information.';
+			return;
+		}
+
+		isLoading = true;
+		errorMessage = '';
+
+		try {
+			const registerRequest: UserCreateRequest = {
+				username: username,
+				password: password
+			};
+
+			const success = await APIInstance.registerUser(registerRequest);
+
+			if (success) {
+				console.info('Registration successful. Logging in...');
+				// Auto-login after successful registration
+				await handleLogin();
+			} else {
+				errorMessage = 'Registration failed. Username may already exist.';
+			}
+		} catch (error) {
+			console.error('Registration error:', error);
+			errorMessage = 'Registration failed. Please try again.';
+		} finally {
+			isLoading = false;
+		}
+	}
+
+	function toggleMode() {
+		isRegisterMode = !isRegisterMode;
+		errorMessage = '';
+		username = '';
+		password = '';
+	}
 </script>
 
 <Page>
 	<!-- Top Navbar -->
 	<Navbar sliding={false}>
 		<!-- Nav Title -- When scrolling -->
-		<NavTitle sliding>Login - {import.meta.env.VITE_APP_NAME}</NavTitle>
+		<NavTitle sliding>{isRegisterMode ? 'Register' : 'Login'} - {import.meta.env.VITE_APP_NAME}</NavTitle>
 		<!-- Large Nav Title -- When at the top -->
-		<NavTitleLarge>Login - {import.meta.env.VITE_APP_NAME}</NavTitleLarge>
+		<NavTitleLarge>{isRegisterMode ? 'Register' : 'Login'} - {import.meta.env.VITE_APP_NAME}</NavTitleLarge>
 	</Navbar>
 
 	<!-- Page content -->
-	<BlockTitle>Login to {import.meta.env.VITE_APP_NAME}</BlockTitle>
+	<BlockTitle>{isRegisterMode ? 'Create an Account' : `Login to ${import.meta.env.VITE_APP_NAME}`}</BlockTitle>
 	<List strongIos dividersIos insetIos>
 		<ListInput
 			outline
@@ -119,22 +159,32 @@
 		<BlockTitle class="text-color-red">{errorMessage}</BlockTitle>
 	{/if}
 
-	<!-- Login button -->
+	<!-- Login/Register button -->
 	<div class="block">
 		<Button
 			fill
 			large
 			disabled={!isFormValid || isLoading}
-			onClick={handleLogin}
+			onClick={isRegisterMode ? handleRegister : handleLogin}
 			class="login-button"
 		>
 			{#if isLoading}
 				<Preloader size={16} class="margin-right" />
-				Logging in...
+				{isRegisterMode ? 'Creating Account...' : 'Logging in...'}
 			{:else}
-				Login
+				{isRegisterMode ? 'Register' : 'Login'}
 			{/if}
 		</Button>
+	</div>
+
+	<!-- Toggle between login and register -->
+	<div class="block text-center">
+		<p class="toggle-text">
+			{isRegisterMode ? 'Already have an account?' : "Don't have an account?"}
+			<button type="button" onclick={toggleMode} class="link-button">
+				{isRegisterMode ? 'Login here' : 'Register here'}
+			</button>
+		</p>
 	</div>
 </Page>
 
@@ -151,5 +201,28 @@
 
 	:global(.margin-right) {
 		margin-inline-end: 8px;
+	}
+
+	.text-center {
+		text-align: center;
+	}
+
+	.toggle-text {
+		color: var(--f7-text-color);
+	}
+
+	.link-button {
+		background: none;
+		border: none;
+		color: var(--f7-theme-color);
+		text-decoration: none;
+		font-weight: 500;
+		cursor: pointer;
+		padding: 0;
+		font-size: inherit;
+	}
+
+	.link-button:hover {
+		text-decoration: underline;
 	}
 </style>

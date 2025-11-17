@@ -5,17 +5,32 @@
 	import type { ISocketMessage } from '@/ts/be/adapter/types';
 	import { Block, BlockTitle, List, ListItem, Navbar, NavTitle, NavTitleLarge, Page } from 'framework7-svelte';
 	import { onMount } from 'svelte';
+	import LeafGauge from '@/components/app/leaf_gauge.svelte';
+	import { Chart, registerables } from 'chart.js';
+	
+	Chart.register(...registerables);
 	
 	let nodeDetails: API.NodeResponse | null = $state(null);
+	let nodeData: API.NodeDataResponse | null = $state(null);
 	let socketMessages: ISocketMessage[] = $state([]);
 	let isSocketConnected = $state(false);
 	let connectionStatus = $state('Disconnected');
 	let latestData: ISocketMessage['data'] | null = $state(null);
+	let chartCanvas: HTMLCanvasElement | undefined;
+	let chart: Chart | null = null;
 
 	onMount(async () => {
 		// Fetch node details
 		if (!nodeDetails) {
 			nodeDetails = await APIInstance.getSingleNode(device_id);
+		}
+
+		// Fetch historical node data
+		if (!nodeData) {
+			nodeData = await APIInstance.getNodeData(device_id);
+			if (nodeData && chartCanvas) {
+				renderChart();
+			}
 		}
 
 		// Start socket connection and monitor
@@ -28,6 +43,75 @@
 	// 		APIInstance.socket.close();
 	// 	}
 	// });
+
+	function renderChart() {
+		if (!nodeData || !chartCanvas) return;
+
+		// Destroy existing chart if any
+		if (chart) {
+			chart.destroy();
+		}
+
+		// Prepare data for the chart
+		const sortedData = [...nodeData.data].sort((a, b) => 
+			new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+		);
+
+		const labels = sortedData.map(item => 
+			new Date(item.timestamp).toLocaleString()
+		);
+		const moistureValues = sortedData.map(item => item.moisture_content ?? 0);
+
+		// Create the chart
+		chart = new Chart(chartCanvas, {
+			type: 'line',
+			data: {
+				labels: labels,
+				datasets: [{
+					label: 'Moisture Content (%)',
+					data: moistureValues,
+					borderColor: 'rgb(34, 197, 94)',
+					backgroundColor: 'rgba(34, 197, 94, 0.1)',
+					tension: 0.3,
+					fill: true
+				}]
+			},
+			options: {
+				responsive: true,
+				maintainAspectRatio: false,
+				plugins: {
+					legend: {
+						display: true,
+						position: 'top'
+					},
+					title: {
+						display: true,
+						text: 'Moisture Content Over Time'
+					}
+				},
+				scales: {
+					y: {
+						beginAtZero: true,
+						max: 100,
+						title: {
+							display: true,
+							text: 'Moisture (%)'
+						}
+					},
+					x: {
+						title: {
+							display: true,
+							text: 'Time'
+						},
+						ticks: {
+							maxRotation: 45,
+							minRotation: 45
+						}
+					}
+				}
+			}
+		});
+	}
 
 	async function initializeSocketMonitor() {
         console.log("Initializing socket monitor for device:", device_id);
@@ -126,11 +210,36 @@
 		<Block>
 			<p><strong>Device ID:</strong> {nodeDetails.device_id}</p>
 			<p><strong>Status:</strong> {nodeDetails.status}</p>
-			<!-- <LeafGauge value={nodeDetails.status} /> -->
+			{#if nodeDetails.status_details}
+				<p><strong>Status Details:</strong> {nodeDetails.status_details}</p>
+			{/if}
 		</Block>
 	{:else}
 		<Block>
 			<p>Loading node details...</p>
+		</Block>
+	{/if}
+
+	<!-- Latest Data with Leaf Gauge -->
+	{#if latestData}
+		<BlockTitle>Latest Reading</BlockTitle>
+		<Block>
+			<p><strong>Moisture Content:</strong> {latestData.moisture_content}%</p>
+			<div class="margin-top">
+				<LeafGauge value={Math.floor((latestData.moisture_content || 0) / 20)} />
+			</div>
+			<p class="margin-top"><strong>Device ID:</strong> {latestData.device_id}</p>
+			<p><strong>User ID:</strong> {latestData.user_id}</p>
+		</Block>
+	{/if}
+
+	<!-- Moisture Content Chart -->
+	{#if nodeData && nodeData.data.length > 0}
+		<BlockTitle>Moisture Content History</BlockTitle>
+		<Block>
+			<div class="chart-container">
+				<canvas bind:this={chartCanvas}></canvas>
+			</div>
 		</Block>
 	{/if}
 
@@ -151,16 +260,6 @@
 			</p>
 		{/if}
 	</Block>
-
-	<!-- Latest Data -->
-	{#if latestData}
-		<BlockTitle>Latest Reading</BlockTitle>
-		<Block>
-			<p><strong>Moisture Content:</strong> {latestData.moisture_content}%</p>
-			<p><strong>Device ID:</strong> {latestData.device_id}</p>
-			<p><strong>User ID:</strong> {latestData.user_id}</p>
-		</Block>
-	{/if}
 
 	<!-- Socket Messages -->
 	<BlockTitle>
@@ -242,5 +341,15 @@
 		opacity: 0.6;
 		text-align: center;
 		font-style: italic;
+	}
+
+	.chart-container {
+		position: relative;
+		height: 300px;
+		width: 100%;
+	}
+
+	.margin-top {
+		margin-top: 12px;
 	}
 </style>
