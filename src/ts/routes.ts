@@ -1,4 +1,5 @@
 import NotFoundPage from '@/pages/404.svelte';
+import FavoritesPage from '@/pages/favorites.svelte';
 import HealthcheckPing from '@/pages/healthcheck_ping.svelte';
 import HomePage from '@/pages/home.svelte';
 import LoginPage from '@/pages/login.svelte';
@@ -14,6 +15,10 @@ const routes: Router.RouteParameters[] = [
 	{
 		path: '/home',
 		component: HomePage
+	},
+	{
+		path: '/favorites',
+		component: FavoritesPage
 	},
 	{
 		path: '/settings',
