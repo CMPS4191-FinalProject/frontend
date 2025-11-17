@@ -1,21 +1,27 @@
 import { Capacitor } from '@capacitor/core';
-import { AuthResponse, LoginRequest, NodeFavoritesResponse, NodesResponse } from './types';
+import {
+	AuthResponse,
+	ErrorResponse,
+	LoginRequest,
+	NodeFavoritesResponse,
+	NodesResponse
+} from './types';
 import { UserCreateRequest, VerifyResponse } from './types/auth';
 import { NodeFavoriteCreateRequest } from './types/favorites';
 import HealthCheckResponse from './types/healthcheck';
-import { NodeCreateRequest, NodeResponse, NodeUpdateRequest } from './types/nodes';
 import { NodeDataResponse } from './types/nodedata';
+import { NodeCreateRequest, NodeResponse, NodeUpdateRequest } from './types/nodes';
 export type {
 	AuthResponse,
 	HealthCheckResponse,
 	LoginRequest,
 	NodeCreateRequest,
+	NodeDataResponse,
 	NodeFavoriteCreateRequest,
 	NodeFavoritesResponse,
 	NodeResponse,
 	NodesResponse,
 	NodeUpdateRequest,
-	NodeDataResponse,
 	UserCreateRequest,
 	VerifyResponse
 };
@@ -34,7 +40,8 @@ class API {
 	private async fetchJSON<T>(
 		url: string,
 		body?: any,
-		method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET'
+		method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
+		wantsError: boolean = false
 	): Promise<T> {
 		const response = await fetch(this.base + this.version + url, {
 			method: method,
@@ -46,9 +53,23 @@ class API {
 			credentials: 'include' // Include cookies in cross-origin requests
 		});
 		if (!response.ok) {
+			if (wantsError) {
+				try {
+					const r = response.clone();
+					return await r.json();
+				} catch (error) {
+					const text = await response.text();
+					return { message: text, error: true } as T;
+				}
+			}
 			throw new Error(`HTTP error! status: ${response.status}`);
 		}
-		return response.json();
+		try {
+			return await response.json();
+		} catch (error) {
+			const text = await response.text();
+			return { message: text, status: false } as T;
+		}
 	}
 
 	/***************** AUTH */
@@ -70,12 +91,25 @@ class API {
 	 * @param loginRequest - The login request containing user credentials.
 	 * @returns A promise that resolves to the authentication token or null if authentication fails.
 	 */
-	async getAuthToken(loginRequest: LoginRequest): Promise<string | null> {
+	async getAuthToken(loginRequest: LoginRequest): Promise<string | ErrorResponse | null> {
 		try {
-			const response = await this.fetchJSON<AuthResponse>('/auth/login', loginRequest, 'POST');
-			this.auth = response;
-			localStorage.setItem('authToken', response.token);
-			return response.token;
+			const response = await this.fetchJSON<AuthResponse | ErrorResponse>(
+				'/auth/login',
+				loginRequest,
+				'POST',
+				true
+			);
+
+			if ('error' in response && response.error) {
+				console.error('Login failed:', response.message);
+				return response;
+			}
+			if ('token' in response && response.token) {
+				this.auth = response;
+				localStorage.setItem('authToken', response.token);
+				return response.token;
+			}
+			return null;
 		} catch (error) {
 			console.error('Error fetching auth token:', error);
 			return null;
@@ -136,7 +170,7 @@ class API {
 					this.auth = auth;
 					return true;
 				}
-				
+
 				const auth: AuthResponse = {
 					user: user,
 					token: cookieToken
@@ -164,10 +198,14 @@ class API {
 	 * @param userCreateRequest - The user creation request containing user details.
 	 * @returns A promise that resolves to true if registration is successful, false otherwise.
 	 */
-	async registerUser(userCreateRequest: UserCreateRequest): Promise<boolean> {
+	async registerUser(userCreateRequest: UserCreateRequest): Promise<VerifyResponse | boolean> {
 		try {
-			await this.fetchJSON<VerifyResponse>('/auth/register', userCreateRequest, 'POST');
-			return true;
+			const register = await this.fetchJSON<VerifyResponse>(
+				'/auth/join',
+				userCreateRequest,
+				'POST'
+			);
+			return register;
 		} catch (error) {
 			console.error('Error registering user:', error);
 			return false;
@@ -405,3 +443,4 @@ class API {
 }
 
 export { API as New };
+

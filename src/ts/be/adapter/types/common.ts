@@ -1,7 +1,7 @@
 // Common types used across multiple endpoints
 
 export interface ErrorResponse {
-	error: string;
+	error: string | boolean;
 	message?: string;
 }
 

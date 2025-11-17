@@ -13,7 +13,7 @@
 
 	import { APIInstance } from '@/ts/api-service';
 	import type { LoginRequest, UserCreateRequest } from '@/ts/be/adapter';
-	import { Lock, User } from '@lucide/svelte';
+	import { Lock, Mail, User } from '@lucide/svelte';
 	import type { Router } from 'framework7/types';
 	import { onMount } from 'svelte';
 
@@ -24,6 +24,7 @@
 	const { f7router }: F7Router = $props();
 
 	// Form state
+	let email = $state('');
 	let username = $state('');
 	let password = $state('');
 	let isLoading = $state(false);
@@ -60,14 +61,17 @@
 				password: password
 			};
 
-			const token = await APIInstance.getAuthToken(loginRequest);
+			const res = await APIInstance.getAuthToken(loginRequest);
 
-			if (token) {
+			console.log(res)
+
+			if (res && res instanceof Object && !('error' in res)) {
 				console.info('Login successful. Redirecting to home page.');
 				f7router.navigate('/home');
-			} else {
-				errorMessage = 'Invalid username or password. Please try again.';
+			} else if (res && res instanceof Object && 'error' in res) {
+				errorMessage = res.message || 'Invalid username or password.';
 			}
+			f7router.navigate('/home');
 		} catch (error) {
 			console.error('Login error:', error);
 			errorMessage = 'Login failed. Please check your connection and try again.';
@@ -87,16 +91,16 @@
 
 		try {
 			const registerRequest: UserCreateRequest = {
+				email: email,
 				username: username,
 				password: password
 			};
 
 			const success = await APIInstance.registerUser(registerRequest);
 
-			if (success) {
-				console.info('Registration successful. Logging in...');
-				// Auto-login after successful registration
-				await handleLogin();
+			if (success && success instanceof Object && 'message' in success) {
+				console.info('Registration successful. Please check your email for verification.');
+				errorMessage = success.message;
 			} else {
 				errorMessage = 'Registration failed. Username may already exist.';
 			}
@@ -111,6 +115,7 @@
 	function toggleMode() {
 		isRegisterMode = !isRegisterMode;
 		errorMessage = '';
+		email = '';
 		username = '';
 		password = '';
 	}
@@ -120,14 +125,36 @@
 	<!-- Top Navbar -->
 	<Navbar sliding={false}>
 		<!-- Nav Title -- When scrolling -->
-		<NavTitle sliding>{isRegisterMode ? 'Register' : 'Login'} - {import.meta.env.VITE_APP_NAME}</NavTitle>
+		<NavTitle sliding
+			>{isRegisterMode ? 'Register' : 'Login'} - {import.meta.env.VITE_APP_NAME}</NavTitle
+		>
 		<!-- Large Nav Title -- When at the top -->
-		<NavTitleLarge>{isRegisterMode ? 'Register' : 'Login'} - {import.meta.env.VITE_APP_NAME}</NavTitleLarge>
+		<NavTitleLarge
+			>{isRegisterMode ? 'Register' : 'Login'} - {import.meta.env.VITE_APP_NAME}</NavTitleLarge
+		>
 	</Navbar>
 
 	<!-- Page content -->
-	<BlockTitle>{isRegisterMode ? 'Create an Account' : `Login to ${import.meta.env.VITE_APP_NAME}`}</BlockTitle>
+	<BlockTitle
+		>{isRegisterMode
+			? 'Create an Account'
+			: `Login to ${import.meta.env.VITE_APP_NAME}`}</BlockTitle
+	>
 	<List strongIos dividersIos insetIos>
+		{#if isRegisterMode}
+			<ListInput
+				outline
+				label="Email"
+				floatingLabel
+				type="email"
+				placeholder="Your email"
+				clearButton
+				bind:value={email}
+				disabled={isLoading}
+			>
+				<Mail slot="media" />
+			</ListInput>
+		{/if}
 		<ListInput
 			outline
 			label="Username"
