@@ -130,6 +130,7 @@ class API {
 		try {
 			await this.fetchJSON<null>('/auth/logout', null, 'POST');
 			this.auth = null;
+			localStorage.removeItem('authToken');
 			return true;
 		} catch (error) {
 			console.error('Error during logout:', error);
