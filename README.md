@@ -1,8 +1,10 @@
+![Image 2025-11-28 at 8 51 35 AM](https://github.com/user-attachments/assets/9c5286be-b16a-4a2c-b2fa-cb95b5b5e9fd)
+
 # Soil Moisture Monitor App (SMA)
 
 A modern mobile application for monitoring soil moisture levels across multiple sensor nodes. Built with Framework7, Svelte, and Capacitor for cross-platform mobile deployment.
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Features](#features)
 - [Technology Stack](#technology-stack)
@@ -15,7 +17,7 @@ A modern mobile application for monitoring soil moisture levels across multiple 
 - [Available Scripts](#available-scripts)
 - [Resources](#resources)
 
-## ✨ Features
+## Features
 
 - **Real-time Monitoring**: Track soil moisture levels from multiple sensor nodes
 - **Favorite Nodes**: Save and quickly access your most important monitoring locations
@@ -26,7 +28,7 @@ A modern mobile application for monitoring soil moisture levels across multiple 
 - **Dark/Light Theme Support**: Customizable appearance settings
 - **Offline Capability**: Works with Capacitor for native mobile features
 
-## 🛠 Technology Stack
+## Technology Stack
 
 - **Frontend Framework**: [Svelte 5](https://svelte.dev/) with TypeScript
 - **UI Framework**: [Framework7 8.x](https://framework7.io/)
@@ -36,7 +38,7 @@ A modern mobile application for monitoring soil moisture levels across multiple 
 - **Charts**: [Chart.js 4.x](https://www.chartjs.org/)
 - **Icons**: [Lucide Svelte](https://lucide.dev/)
 
-## 📦 Prerequisites
+## Prerequisites
 
 Before you begin, ensure you have the following installed:
 
@@ -49,7 +51,7 @@ Before you begin, ensure you have the following installed:
   - Xcode
   - CocoaPods
 
-## 🚀 Installation
+## Installation
 
 1. **Clone the repository**:
    ```bash
@@ -69,7 +71,7 @@ Before you begin, ensure you have the following installed:
    npx cap add ios
    ```
 
-## ⚙️ Configuration
+## Configuration
 
 1. **Create environment file**:
    ```bash
@@ -91,7 +93,7 @@ Before you begin, ensure you have the following installed:
    - `VITE_BE_BASE_T`: Backend API URL for testing on physical devices (replace `<your-device-ip>` with your computer's local network IP address, typically starting with `192.168.x.x` or `10.x.x.x` - find it using `ipconfig` on Windows or `ifconfig` on macOS/Linux)
    - `VITE_BE_VERSION`: API version
 
-## 💻 Development
+## Development
 
 ### Start Development Server
 
@@ -124,7 +126,7 @@ npm run cap:open
 
 This command builds the app, syncs with Capacitor, and opens Android Studio.
 
-## 🏗 Building
+## Building
 
 ### Build for Production (Web)
 
@@ -148,7 +150,7 @@ npm run build-capacitor-ios
 
 After building, open the respective platform in its IDE (Android Studio or Xcode) to generate the final app package.
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 frontend/
@@ -179,7 +181,7 @@ frontend/
 └── package.json         # Project dependencies
 ```
 
-## 📜 Available Scripts
+## Available Scripts
 
 | Command | Description |
 |---------|-------------|
@@ -193,7 +195,7 @@ frontend/
 | `npm run cap:update` | Update Capacitor dependencies |
 | `npm run cap:open` | Build, sync, and open in Android Studio |
 
-## 📚 Resources
+## Resources
 
 ### Framework7 Documentation
 - [Framework7 Core Documentation](https://framework7.io/docs/)
@@ -210,14 +212,3 @@ frontend/
 - [Vite Documentation](https://vitejs.dev/)
 - [Svelte Documentation](https://svelte.dev/)
 - [TailwindCSS Documentation](https://tailwindcss.com/)
-
-## 📄 License
-
-This project is unlicensed proprietary software. All rights reserved.
-
----
-
-**Package Information**:
-- Name: `sma`
-- Version: `1.0.0`
-- App ID: `com.alexdev404.sma`
