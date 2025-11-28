@@ -109,6 +109,9 @@ The app will be available at `http://localhost:5173` (or another port if 5173 is
 To test on a mobile device or emulator:
 
 ```bash
+# Build the assets
+npm run build
+
 # Sync web assets to native projects
 npm run cap:sync
 
