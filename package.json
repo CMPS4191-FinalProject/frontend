@@ -42,7 +42,7 @@
     "skeleton-elements": "^4.0.1",
     "svelte": "^5.38.2",
     "swiper": "^11.2.10",
-    "tailwindcss": "^4.1.13"
+    "tailwindcss": "^4.1.17"
   },
   "devDependencies": {
     "@capacitor/cli": "^7.4.2",
