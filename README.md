@@ -1,4 +1,5 @@
-![Image 2025-11-28 at 8 51 35 AM](https://github.com/user-attachments/assets/9c5286be-b16a-4a2c-b2fa-cb95b5b5e9fd)
+<img width="340" alt="image" src="https://github.com/user-attachments/assets/941b65a4-808c-428e-9967-56425478f7f2" />
+
 
 # Soil Moisture Monitor App (SMA)
 
