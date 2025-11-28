@@ -53,7 +53,7 @@ Before you begin, ensure you have the following installed:
 
 1. **Clone the repository**:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/CMPS4191-FinalProject/frontend.git
    cd frontend
    ```
 
@@ -88,7 +88,7 @@ Before you begin, ensure you have the following installed:
    - `VITE_APP_NAME`: Application display name
    - `VITE_APP_THEME`: Default theme (`dark` or `light`)
    - `VITE_BE_BASE`: Backend API URL for development
-   - `VITE_BE_BASE_T`: Backend API URL for testing on physical devices (replace `<your-device-ip>` with your computer's local IP address - find it using `ipconfig` on Windows or `ifconfig` on macOS/Linux)
+   - `VITE_BE_BASE_T`: Backend API URL for testing on physical devices (replace `<your-device-ip>` with your computer's local network IP address, typically starting with `192.168.x.x` or `10.x.x.x` - find it using `ipconfig` on Windows or `ifconfig` on macOS/Linux)
    - `VITE_BE_VERSION`: API version
 
 ## 💻 Development
