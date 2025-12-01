@@ -38,7 +38,7 @@
     "chart.js": "^4.5.1",
     "dom7": "^4.0.6",
     "framework7": "^8.3.4",
-    "framework7-svelte": "^8.3.4",
+    "framework7-svelte": "^9.0.1",
     "skeleton-elements": "^4.0.1",
     "svelte": "^5.45.2",
     "swiper": "^11.2.10",
