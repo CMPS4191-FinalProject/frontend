@@ -41,7 +41,7 @@
     "framework7-svelte": "^8.3.4",
     "skeleton-elements": "^4.0.1",
     "svelte": "^5.45.2",
-    "swiper": "^11.2.10",
+    "swiper": "^12.0.3",
     "tailwindcss": "^4.1.17"
   },
   "devDependencies": {
